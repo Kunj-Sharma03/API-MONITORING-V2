@@ -1,0 +1,630 @@
+'use client';
+
+import React, { useState, useRef, useEffect, useMemo } from 'react';
+import useMonitorsSWR from '@/hooks/useMonitorsSWR';
+import useAuthToken from '@/hooks/useAuthToken';
+import ScrollReveal from '@/components/ui/ScrollReveal';
+import Chart from '@/components/ui/Chart';
+import SplitText from '@/components/ui/SplitText';
+import { useRouter } from 'next/navigation';
+import { MonitorIcon, Activity, AlertTriangle, TrendingUp, ChevronDown } from 'lucide-react';
+
+export default function Dashboard() {
+  const router = useRouter();
+  
+  // Analytics state
+  const [analytics, setAnalytics] = useState({
+    overview: null,
+    uptimeHistory: [],
+    responseTime: [],
+    alertsHistory: [],
+    loading: true
+  });
+  const [timeRange, setTimeRange] = useState('7d');
+
+  const { token } = useAuthToken();
+  const { monitors, isLoading } = useMonitorsSWR();
+
+  // Fetch analytics data
+  useEffect(() => {
+    if (!token) return;
+    
+    const fetchAnalytics = async () => {
+      setAnalytics(prev => ({ ...prev, loading: true }));
+      
+      try {
+        const [overviewRes, uptimeRes, responseRes, alertsRes] = await Promise.all([
+          fetch(`http://localhost:5000/api/analytics/overview?range=${timeRange}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          }),
+          fetch(`http://localhost:5000/api/analytics/uptime-history?range=${timeRange}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          }),
+          fetch(`http://localhost:5000/api/analytics/response-time?range=${timeRange}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          }),
+          fetch(`http://localhost:5000/api/analytics/alerts-history?range=${timeRange}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          })
+        ]);
+
+        const [overview, uptimeHistory, responseTime, alertsHistory] = await Promise.all([
+          overviewRes.ok ? overviewRes.json() : null,
+          uptimeRes.ok ? uptimeRes.json() : { data: [] },
+          responseRes.ok ? responseRes.json() : { data: [] },
+          alertsRes.ok ? alertsRes.json() : { data: [] }
+        ]);
+
+        setAnalytics({
+          overview,
+          uptimeHistory: uptimeHistory.data || [],
+          responseTime: responseTime.data || [],
+          alertsHistory: alertsHistory.data || [],
+          loading: false
+        });
+      } catch (error) {
+        console.error('Failed to fetch analytics:', error);
+        setAnalytics(prev => ({ ...prev, loading: false }));
+      }
+    };
+
+    fetchAnalytics();
+  }, [token, timeRange]);
+
+  // Fetch chart data when monitors change
+  // Advanced: Parallelize stats requests with concurrency limit, update chart as data arrives
+  React.useEffect(() => {
+    if (!token || !monitors.length) return;
+    let cancelled = false;
+    const limit = pLimit(4); // 4 concurrent requests
+    const statsArr = new Array(monitors.length);
+    setChartData({ labels: [], uptime: [], incidents: [] });
+
+    async function fetchStats() {
+      await Promise.all(
+        monitors.map((monitor, i) =>
+          limit(async () => {
+            try {
+              const statsRes = await fetch(`http://localhost:5000/api/monitor/${monitor.id}/stats`, {
+                headers: { Authorization: `Bearer ${token}` },
+              });
+              if (!statsRes.ok) return;
+              const stats = await statsRes.json();
+              statsArr[i] = {
+                label: monitor.url,
+                uptime: Number(stats.uptimePercent),
+                incidents: stats.totalAlerts,
+              };
+              // Update chart as each stat arrives
+              if (!cancelled) {
+                const filtered = statsArr.filter(Boolean);
+                setChartData({
+                  labels: filtered.map((s) => s.label),
+                  uptime: filtered.map((s) => s.uptime),
+                  incidents: filtered.map((s) => s.incidents),
+                });
+              }
+            } catch {}
+          })
+        )
+      );
+    }
+    fetchStats();
+    return () => { cancelled = true; };
+  }, [token, monitors]);
+
+  const createMonitor = async (e) => {
+    e.preventDefault();
+    setCreating(true);
+    try {
+      const res = await fetch('http://localhost:5000/api/monitor/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          url,
+          interval_minutes: interval,
+          alert_threshold: threshold,
+        }),
+      });
+
+      if (res.ok) {
+        setUrl('');
+        setInterval(5);
+        setThreshold(3);
+        mutate(); // revalidate SWR cache
+      }
+    } catch (err) {
+      console.error('Failed to create monitor:', err.message);
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const fetchLogs = async (monitorId) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/monitor/${monitorId}/logs`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      setLogs(data.logs || []);
+      setAlerts([]);
+      setActiveView({ monitorId, type: 'logs' });
+    } catch (err) {
+      console.error('Error fetching logs:', err.message);
+    }
+  };
+
+  const fetchAlerts = async (monitorId) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/monitor/${monitorId}/alerts`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      setAlerts(data.alerts || []);
+      setLogs([]);
+      setActiveView({ monitorId, type: 'alerts' });
+    } catch (err) {
+      console.error('Error fetching alerts:', err.message);
+    }
+  };
+
+  const downloadPDF = async (monitorId, alertId) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/monitor/${monitorId}/alert/${alertId}/pdf`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!res.ok) throw new Error('PDF download failed');
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `alert-${alertId}.pdf`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Failed to download PDF:', err.message);
+    }
+  };
+
+  const updateMonitor = async (e) => {
+  e.preventDefault();
+  if (!editingMonitor) return;
+
+  try {
+    const res = await fetch(`http://localhost:5000/api/monitor/${editingMonitor.id}/update`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+      },
+      body: JSON.stringify({
+        url: editUrl,
+        interval_minutes: editInterval,
+        alert_threshold: editThreshold,
+        is_active: editActive,
+      }),
+    });
+
+    if (!res.ok) {
+      const error = await res.json();
+      alert(`Failed to update monitor: ${error.msg || error.errors?.[0]?.msg}`);
+      return;
+    }
+
+    const updated = await res.json();
+
+    mutate(); // Refresh monitors from server
+
+    setEditingMonitor(null); // Close modal
+  } catch (err) {
+    console.error('Update failed:', err.message);
+    alert('Something went wrong while updating.');
+  }
+};
+
+const deleteMonitor = async (id) => {
+  if (!confirm('Deleting this monitor will also remove all associated logs and alerts. Proceed?')) return;
+
+  try {
+    const res = await fetch(`http://localhost:5000/api/monitor/${id}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!res.ok) {
+      alert('Failed to delete monitor');
+      return;
+    }
+
+    mutate(); // Refresh monitors from server
+  } catch (err) {
+    console.error('Delete failed:', err.message);
+    alert('Something went wrong while deleting.');
+  }
+};
+
+const deleteAlert = async (alert) => {
+  if (!alert || !alert.id) return;
+  if (!confirm('Are you sure you want to delete this alert?')) return;
+  try {
+    const res = await fetch(`http://localhost:5000/api/monitor/alert/${alert.id}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) throw new Error('Failed to delete alert');
+    // Remove alert from state
+    setAlerts(prev => prev.filter(a => a.id !== alert.id));
+  } catch (err) {
+    alert('Error deleting alert: ' + err.message);
+  }
+};
+
+
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    router.push('/login');
+  };
+
+  const filteredMonitors = useMemo(() => {
+  let result = [...monitors];
+  if (statusFilter !== 'ALL') {
+    result = result.filter((m) => String(m.is_active) === statusFilter);
+  }
+  result.sort((a, b) => {
+    if (sortBy === 'url') return a.url.localeCompare(b.url);
+    if (sortBy === 'interval') return a.interval_minutes - b.interval_minutes;
+    if (sortBy === 'threshold') return a.alert_threshold - b.alert_threshold;
+    return 0;
+  });
+  return result;
+}, [monitors, statusFilter, sortBy]);
+
+  // Memoize SplitText animation props to prevent infinite re-renders
+  const splitTextFrom = useMemo(() => ({ opacity: 0, y: 40 }), []);
+  const splitTextTo = useMemo(() => ({ opacity: 1, y: 0 }), []);
+
+  return (
+    <div className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text-primary)]">
+      <main className="flex-1 px-8 py-10 bg-[var(--color-bg)] bg-opacity-80 min-h-screen">
+        {/* Hero Section - Always Visible */}
+        <div className="relative flex flex-col items-center justify-center w-full min-h-screen">
+          {/* Logout button top right */}
+          <button
+            onClick={handleLogout}
+            className="absolute right-8 top-8 bg-[var(--color-error)] text-[var(--color-text-primary)] px-4 py-2 rounded hover:bg-red-600 transition-colors text-base font-medium z-10"
+          >
+            Logout
+          </button>
+          
+          {/* Main Content */}
+          <div className="flex flex-col items-center justify-center w-full h-full">
+            <SplitText
+              text="Hello, User!"
+              className="text-4xl font-bold font-sans text-center mb-8"
+              delay={60}
+              duration={0.6}
+              ease="power3.out"
+              splitType="chars"
+              from={splitTextFrom}
+              to={splitTextTo}
+              threshold={0.1}
+              rootMargin="-100px"
+              textAlign="center"
+            />
+            
+            {/* Main Stats - Total and Active Monitors */}
+            <div className="flex flex-row gap-12 mt-2 w-full justify-center z-10">
+              <div className="flex flex-col items-center gap-1 bg-[var(--color-surface)] bg-opacity-80 border border-[var(--color-border)] rounded-lg px-10 py-8 min-w-[180px] shadow-md">
+                <MonitorIcon className="w-10 h-10 text-[var(--color-primary)] mb-2" />
+                <span className="text-sm text-[var(--color-text-secondary)] font-sans">Total Monitors</span>
+                <span className="text-3xl font-bold font-sans">{isLoading ? '...' : monitors.length}</span>
+              </div>
+              <div className="flex flex-col items-center gap-1 bg-[var(--color-surface)] bg-opacity-80 border border-[var(--color-border)] rounded-lg px-10 py-8 min-w-[180px] shadow-md">
+                <span className="w-10 h-10 rounded-full bg-[var(--color-success)] inline-block mb-2" />
+                <span className="text-sm text-[var(--color-text-secondary)] font-sans">Active</span>
+                <span className="text-3xl font-bold font-sans">{isLoading ? '...' : monitors.filter(m => m.is_active).length}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Scroll Indicator */}
+          <div className="absolute bottom-8 flex flex-col items-center animate-bounce">
+            <span className="text-sm text-[var(--color-text-secondary)] mb-2 font-medium">Scroll for Analytics</span>
+            <ChevronDown className="w-6 h-6 text-[var(--color-text-secondary)]" />
+          </div>
+        </div>
+
+        {/* Analytics Section - Scroll Reveal */}
+        <div className="w-full space-y-16 pb-16">
+          {/* Overview Stats */}
+          <ScrollReveal baseOpacity={0.05} enableBlur={true} baseRotation={2} blurStrength={8}>
+            <div className="w-full max-w-7xl mx-auto">
+              <h2 className="text-2xl font-bold text-center mb-8 text-[var(--color-text-primary)]">
+                Overview Analytics
+              </h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                {/* Average Uptime */}
+                <div className="bg-[var(--color-surface)] bg-opacity-70 border border-[var(--color-border)] rounded-2xl p-6 text-center shadow-lg">
+                  <Activity className="w-8 h-8 text-[var(--color-success)] mx-auto mb-3" />
+                  <h3 className="text-sm text-[var(--color-text-secondary)] mb-2">Average Uptime</h3>
+                  <p className="text-2xl font-bold text-[var(--color-success)]">
+                    {analytics.loading ? '...' : `${analytics.overview?.averageUptime || 0}%`}
+                  </p>
+                </div>
+
+                {/* Response Time */}
+                <div className="bg-[var(--color-surface)] bg-opacity-70 border border-[var(--color-border)] rounded-2xl p-6 text-center shadow-lg">
+                  <TrendingUp className="w-8 h-8 text-[var(--color-primary)] mx-auto mb-3" />
+                  <h3 className="text-sm text-[var(--color-text-secondary)] mb-2">Avg Response Time</h3>
+                  <p className="text-2xl font-bold text-[var(--color-primary)]">
+                    {analytics.loading ? '...' : `${analytics.overview?.averageResponseTime || 0}ms`}
+                  </p>
+                </div>
+
+                {/* Total Alerts */}
+                <div className="bg-[var(--color-surface)] bg-opacity-70 border border-[var(--color-border)] rounded-2xl p-6 text-center shadow-lg">
+                  <AlertTriangle className="w-8 h-8 text-[var(--color-error)] mx-auto mb-3" />
+                  <h3 className="text-sm text-[var(--color-text-secondary)] mb-2">Total Alerts</h3>
+                  <p className="text-2xl font-bold text-[var(--color-error)]">
+                    {analytics.loading ? '...' : analytics.overview?.totalAlerts || 0}
+                  </p>
+                </div>
+
+                {/* Active Incidents */}
+                <div className="bg-[var(--color-surface)] bg-opacity-70 border border-[var(--color-border)] rounded-2xl p-6 text-center shadow-lg">
+                  <AlertTriangle className="w-8 h-8 text-[var(--color-warning)] mx-auto mb-3" />
+                  <h3 className="text-sm text-[var(--color-text-secondary)] mb-2">Active Incidents</h3>
+                  <p className="text-2xl font-bold text-[var(--color-warning)]">
+                    {analytics.loading ? '...' : analytics.overview?.activeIncidents || 0}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </ScrollReveal>
+
+          {/* Uptime Trend Chart */}
+          <ScrollReveal baseOpacity={0.05} enableBlur={true} baseRotation={2} blurStrength={8}>
+            <div className="w-full max-w-7xl mx-auto">
+              <h2 className="text-2xl font-bold text-center mb-8 text-[var(--color-text-primary)]">
+                Uptime Trend
+              </h2>
+              
+              <div 
+                className="bg-[var(--color-surface)] bg-opacity-70 border border-[var(--color-border)] rounded-3xl p-8 shadow-2xl"
+                style={{ 
+                  background: 'linear-gradient(135deg, rgba(240,235,255,0.38) 0%, rgba(220,210,255,0.18) 100%)',
+                  minHeight: '400px'
+                }}
+              >
+                {analytics.loading ? (
+                  <div className="w-full h-[350px] flex items-center justify-center">
+                    <div className="animate-pulse w-2/3 h-2/3 bg-[var(--color-surface)] rounded-2xl opacity-60" />
+                  </div>
+                ) : (
+                  <Chart
+                    type="line"
+                    className="w-full h-[350px]"
+                    height={350}
+                    data={{
+                      labels: analytics.uptimeHistory.map(item => 
+                        new Date(item.time_bucket).toLocaleDateString()
+                      ),
+                      datasets: [{
+                        label: 'Uptime %',
+                        data: analytics.uptimeHistory.map(item => item.uptime_percent),
+                        borderColor: 'rgba(200, 180, 255, 1)',
+                        backgroundColor: 'rgba(200, 180, 255, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: 'rgba(200, 180, 255, 1)',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 5
+                      }]
+                    }}
+                    options={{
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                          backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                          titleColor: '#fff',
+                          bodyColor: '#fff'
+                        }
+                      },
+                      scales: {
+                        y: {
+                          beginAtZero: true,
+                          max: 100,
+                          grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                          ticks: { color: 'rgba(255, 255, 255, 0.7)' }
+                        },
+                        x: {
+                          grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                          ticks: { color: 'rgba(255, 255, 255, 0.7)' }
+                        }
+                      }
+                    }}
+                  />
+                )}
+              </div>
+            </div>
+          </ScrollReveal>
+
+          {/* Response Time Chart */}
+          <ScrollReveal baseOpacity={0.05} enableBlur={true} baseRotation={2} blurStrength={8}>
+            <div className="w-full max-w-7xl mx-auto">
+              <h2 className="text-2xl font-bold text-center mb-8 text-[var(--color-text-primary)]">
+                Response Time Trend
+              </h2>
+              
+              <div 
+                className="bg-[var(--color-surface)] bg-opacity-70 border border-[var(--color-border)] rounded-3xl p-8 shadow-2xl"
+                style={{ 
+                  background: 'linear-gradient(135deg, rgba(255,245,235,0.38) 0%, rgba(255,235,210,0.18) 100%)',
+                  minHeight: '400px'
+                }}
+              >
+                {analytics.loading ? (
+                  <div className="w-full h-[350px] flex items-center justify-center">
+                    <div className="animate-pulse w-2/3 h-2/3 bg-[var(--color-surface)] rounded-2xl opacity-60" />
+                  </div>
+                ) : (
+                  <Chart
+                    type="line"
+                    className="w-full h-[350px]"
+                    height={350}
+                    data={{
+                      labels: analytics.responseTime.map(item => 
+                        new Date(item.time_bucket).toLocaleDateString()
+                      ),
+                      datasets: [{
+                        label: 'Response Time (ms)',
+                        data: analytics.responseTime.map(item => item.avg_response_time),
+                        borderColor: 'rgba(255, 159, 64, 1)',
+                        backgroundColor: 'rgba(255, 159, 64, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: 'rgba(255, 159, 64, 1)',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 5
+                      }]
+                    }}
+                    options={{
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                          backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                          titleColor: '#fff',
+                          bodyColor: '#fff'
+                        }
+                      },
+                      scales: {
+                        y: {
+                          beginAtZero: true,
+                          grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                          ticks: { color: 'rgba(255, 255, 255, 0.7)' }
+                        },
+                        x: {
+                          grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                          ticks: { color: 'rgba(255, 255, 255, 0.7)' }
+                        }
+                      }
+                    }}
+                  />
+                )}
+              </div>
+            </div>
+          </ScrollReveal>
+
+          {/* Alerts History Chart */}
+          <ScrollReveal baseOpacity={0.05} enableBlur={true} baseRotation={2} blurStrength={8}>
+            <div className="w-full max-w-7xl mx-auto">
+              <h2 className="text-2xl font-bold text-center mb-8 text-[var(--color-text-primary)]">
+                Alerts History
+              </h2>
+              
+              <div 
+                className="bg-[var(--color-surface)] bg-opacity-70 border border-[var(--color-border)] rounded-3xl p-8 shadow-2xl"
+                style={{ 
+                  background: 'linear-gradient(135deg, rgba(255,235,235,0.38) 0%, rgba(255,210,210,0.18) 100%)',
+                  minHeight: '400px'
+                }}
+              >
+                {analytics.loading ? (
+                  <div className="w-full h-[350px] flex items-center justify-center">
+                    <div className="animate-pulse w-2/3 h-2/3 bg-[var(--color-surface)] rounded-2xl opacity-60" />
+                  </div>
+                ) : (
+                  <Chart
+                    type="bar"
+                    className="w-full h-[350px]"
+                    height={350}
+                    data={{
+                      labels: analytics.alertsHistory.map(item => 
+                        new Date(item.time_bucket).toLocaleDateString()
+                      ),
+                      datasets: [{
+                        label: 'Alerts',
+                        data: analytics.alertsHistory.map(item => item.alert_count),
+                        backgroundColor: 'rgba(255, 99, 132, 0.7)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 2,
+                        borderRadius: 8
+                      }]
+                    }}
+                    options={{
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                          backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                          titleColor: '#fff',
+                          bodyColor: '#fff'
+                        }
+                      },
+                      scales: {
+                        y: {
+                          beginAtZero: true,
+                          grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                          ticks: { color: 'rgba(255, 255, 255, 0.7)' }
+                        },
+                        x: {
+                          grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                          ticks: { color: 'rgba(255, 255, 255, 0.7)' }
+                        }
+                      }
+                    }}
+                  />
+                )}
+              </div>
+            </div>
+          </ScrollReveal>
+
+          {/* Call to Action */}
+          <ScrollReveal baseOpacity={0.05} enableBlur={true} baseRotation={2} blurStrength={8}>
+            <div className="w-full max-w-4xl mx-auto text-center py-16">
+              <h2 className="text-3xl font-bold mb-6 text-[var(--color-text-primary)]">
+                Ready to dive deeper?
+              </h2>
+              <p className="text-lg text-[var(--color-text-secondary)] mb-8">
+                Explore detailed per-monitor analytics, manage your monitors, and view comprehensive reports.
+              </p>
+              <div className="flex gap-4 justify-center">
+                <button
+                  onClick={() => router.push('/dashboard/analytics')}
+                  className="bg-[var(--color-primary)] text-white px-8 py-3 rounded-lg font-medium hover:bg-opacity-90 transition-all"
+                >
+                  Detailed Analytics
+                </button>
+                <button
+                  onClick={() => router.push('/dashboard/monitors')}
+                  className="bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-primary)] px-8 py-3 rounded-lg font-medium hover:bg-opacity-80 transition-all"
+                >
+                  Manage Monitors
+                </button>
+              </div>
+            </div>
+          </ScrollReveal>
+        </div>
+      </main>
+    </div>
+  );
+}
+
