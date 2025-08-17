@@ -1,0 +1,139 @@
+"use client";
+
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { X, AlertTriangle, CheckCircle, Info, AlertCircle } from 'lucide-react';
+
+const ToastContext = createContext();
+
+export const useToast = () => {
+  const context = useContext(ToastContext);
+  if (!context) {
+    throw new Error('useToast must be used within a ToastProvider');
+  }
+  return context;
+};
+
+export const ToastProvider = ({ children }) => {
+  const [toasts, setToasts] = useState([]);
+
+  const addToast = (message, type = 'info', duration = 5000) => {
+    const id = Date.now() + Math.random();
+    const toast = { id, message, type, duration };
+    
+    setToasts(prev => [...prev, toast]);
+
+    // Auto remove after duration
+    if (duration > 0) {
+      setTimeout(() => {
+        removeToast(id);
+      }, duration);
+    }
+
+    return id;
+  };
+
+  const removeToast = (id) => {
+    setToasts(prev => prev.filter(toast => toast.id !== id));
+  };
+
+  const showSuccess = (message, duration) => addToast(message, 'success', duration);
+  const showError = (message, duration) => addToast(message, 'error', duration);
+  const showWarning = (message, duration) => addToast(message, 'warning', duration);
+  const showInfo = (message, duration) => addToast(message, 'info', duration);
+
+  return (
+    <ToastContext.Provider value={{
+      addToast,
+      removeToast,
+      showSuccess,
+      showError,
+      showWarning,
+      showInfo
+    }}>
+      {children}
+      <ToastContainer toasts={toasts} removeToast={removeToast} />
+    </ToastContext.Provider>
+  );
+};
+
+const ToastContainer = ({ toasts, removeToast }) => {
+  if (toasts.length === 0) return null;
+
+  return (
+    <div className="fixed top-4 right-4 z-50 space-y-2">
+      {toasts.map(toast => (
+        <Toast key={toast.id} toast={toast} onRemove={removeToast} />
+      ))}
+    </div>
+  );
+};
+
+const Toast = ({ toast, onRemove }) => {
+  const [isExiting, setIsExiting] = useState(false);
+
+  const handleRemove = () => {
+    setIsExiting(true);
+    setTimeout(() => onRemove(toast.id), 300);
+  };
+
+  useEffect(() => {
+    // Auto-remove animation
+    if (toast.duration > 0) {
+      const timer = setTimeout(() => {
+        setIsExiting(true);
+        setTimeout(() => onRemove(toast.id), 300);
+      }, toast.duration - 300);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [toast.duration, toast.id, onRemove]);
+
+  const getIcon = () => {
+    switch (toast.type) {
+      case 'success':
+        return <CheckCircle className="w-5 h-5 text-green-500" />;
+      case 'error':
+        return <AlertCircle className="w-5 h-5 text-red-500" />;
+      case 'warning':
+        return <AlertTriangle className="w-5 h-5 text-yellow-500" />;
+      default:
+        return <Info className="w-5 h-5 text-blue-500" />;
+    }
+  };
+
+  const getStyles = () => {
+    const baseStyles = "flex items-start gap-3 p-4 rounded-lg shadow-lg border max-w-sm";
+    
+    switch (toast.type) {
+      case 'success':
+        return `${baseStyles} bg-green-50 border-green-200 text-green-800`;
+      case 'error':
+        return `${baseStyles} bg-red-50 border-red-200 text-red-800`;
+      case 'warning':
+        return `${baseStyles} bg-yellow-50 border-yellow-200 text-yellow-800`;
+      default:
+        return `${baseStyles} bg-blue-50 border-blue-200 text-blue-800`;
+    }
+  };
+
+  return (
+    <div
+      className={`${getStyles()} transform transition-all duration-300 ${
+        isExiting 
+          ? 'translate-x-full opacity-0' 
+          : 'translate-x-0 opacity-100'
+      }`}
+    >
+      {getIcon()}
+      <div className="flex-1">
+        <p className="text-sm font-medium">{toast.message}</p>
+      </div>
+      <button
+        onClick={handleRemove}
+        className="text-gray-400 hover:text-gray-600 transition-colors"
+      >
+        <X className="w-4 h-4" />
+      </button>
+    </div>
+  );
+};

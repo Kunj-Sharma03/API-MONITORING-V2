@@ -8,6 +8,13 @@ const apiLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  // Trust the first proxy (load balancer) for getting real client IP
+  trustProxy: 1,
+  // Use a custom key generator that's aware of proxy settings
+  keyGenerator: (req) => {
+    // Get the real IP address, considering proxy headers
+    return req.ip || req.connection.remoteAddress;
+  }
 });
 
 module.exports = apiLimiter;

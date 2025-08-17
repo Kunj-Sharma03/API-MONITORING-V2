@@ -24,6 +24,8 @@ const express = require('express');
 const cors = require('cors');
 const session = require('express-session');
 const passport = require('passport');
+const { createServer } = require('http');
+const { Server } = require('socket.io');
 const cron = require('node-cron');
 const LOG_CLEANUP_DAYS = parseInt(process.env.LOG_CLEANUP_DAYS || '7');
 const apiLimiter = require('./middleware/rateLimiter');
@@ -37,9 +39,20 @@ const validateEnv = require('./utils/validateEnv');
 validateEnv();
 
 const app = express();
+const server = createServer(app);
 
-// Trust proxy for Railway (needed for rate limiting and getting real client IPs)
-app.set('trust proxy', true);
+// Initialize Socket.io with CORS configuration
+const io = new Server(server, {
+  cors: {
+    origin: process.env.FRONTEND_URL || "http://localhost:3000",
+    methods: ["GET", "POST"],
+    credentials: true
+  }
+});
+
+// Configure trust proxy more securely for Docker/Railway deployment
+// Only trust the first proxy (load balancer/reverse proxy)
+app.set('trust proxy', 1);
 
 app.use(cors());
 app.use(express.json());
@@ -127,6 +140,24 @@ async function connectWithRetry(retries = 5, delay = 3000) {
   console.warn('⚠️ Starting server without DB connection.');
 }
 
+// Socket.io connection handling
+io.on('connection', (socket) => {
+  console.log('🔌 Client connected:', socket.id);
+  
+  // Join user to their personal room for targeted updates
+  socket.on('join-user-room', (userId) => {
+    socket.join(`user-${userId}`);
+    console.log(`👤 User ${userId} joined their room`);
+  });
+  
+  socket.on('disconnect', () => {
+    console.log('🔌 Client disconnected:', socket.id);
+  });
+});
+
+// Make io available globally for other modules
+global.io = io;
+
 // 🧨 Handle global unhandled DB rejections
 process.on('unhandledRejection', (err) => {
   console.error('🧨 Unhandled DB error:', err.message);
@@ -135,5 +166,8 @@ process.on('unhandledRejection', (err) => {
 const PORT = process.env.PORT || 5000;
 
 connectWithRetry().then(() => {
-  app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+  server.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`🌐 Socket.io server ready for real-time connections`);
+  });
 });

@@ -1,12 +1,13 @@
 
 import { Inter, JetBrains_Mono, Sora, Nunito_Sans } from "next/font/google";
+import "./globals.css";
+
 const nunitoSans = Nunito_Sans({
   variable: "--font-nunito-sans",
   subsets: ["latin"],
   display: "swap",
   weight: ["400", "600", "700", "800"],
 });
-import "./globals.css";
 
 
 const inter = Inter({

@@ -3,11 +3,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import useMonitorsSWR from '@/hooks/useMonitorsSWR';
 import useAuthToken from '@/hooks/useAuthToken';
+import useSocket from '@/hooks/useSocket';
 import ScrollReveal from '@/components/ui/ScrollReveal';
 import Chart from '@/components/ui/Chart';
 import SplitText from '@/components/ui/SplitText';
 import { useRouter } from 'next/navigation';
-import { MonitorIcon, Activity, AlertTriangle, TrendingUp, ChevronDown } from 'lucide-react';
+import { MonitorIcon, Activity, AlertTriangle, TrendingUp, ChevronDown, Wifi, WifiOff } from 'lucide-react';
 
 export default function Dashboard() {
   const router = useRouter();
@@ -24,6 +25,9 @@ export default function Dashboard() {
 
   const { token } = useAuthToken();
   const { monitors, isLoading } = useMonitorsSWR();
+  
+  // Real-time socket connection
+  const { isConnected, monitorUpdates, alerts } = useSocket();
 
   // Fetch analytics data
   useEffect(() => {
@@ -103,12 +107,34 @@ export default function Dashboard() {
         {/* Hero Section - Always Visible */}
         <div className="relative flex flex-col items-center justify-center w-full min-h-screen">
           {/* Logout button top right */}
-          <button
-            onClick={handleLogout}
-            className="absolute right-8 top-8 bg-[var(--color-error)] text-[var(--color-text-primary)] px-4 py-2 rounded hover:bg-red-600 transition-colors text-base font-medium z-10"
-          >
-            Logout
-          </button>
+          {/* Top Actions */}
+          <div className="absolute right-8 top-8 flex items-center gap-4 z-10">
+            {/* Real-time Connection Status */}
+            <div className={`flex items-center gap-2 px-3 py-1 rounded text-sm ${
+              isConnected 
+                ? 'bg-green-900 bg-opacity-20 text-green-400 border border-green-400 border-opacity-30' 
+                : 'bg-red-900 bg-opacity-20 text-red-400 border border-red-400 border-opacity-30'
+            }`}>
+              {isConnected ? (
+                <>
+                  <Wifi className="w-3 h-3" />
+                  <span>Live</span>
+                </>
+              ) : (
+                <>
+                  <WifiOff className="w-3 h-3" />
+                  <span>Offline</span>
+                </>
+              )}
+            </div>
+            
+            <button
+              onClick={handleLogout}
+              className="bg-[var(--color-error)] text-[var(--color-text-primary)] px-4 py-2 rounded hover:bg-red-600 transition-colors text-base font-medium"
+            >
+              Logout
+            </button>
+          </div>
           
           {/* Main Content */}
           <div className="flex flex-col items-center justify-center w-full h-full -mt-16">
@@ -150,6 +176,33 @@ export default function Dashboard() {
 
         {/* Analytics Section - Scroll Reveal */}
         <div className="w-full space-y-16 pb-32">
+          {/* Time Range Selector */}
+          <ScrollReveal 
+            baseOpacity={0.1} 
+            enableBlur={true} 
+            baseRotation={1} 
+            blurStrength={4}
+            containerClassName="time-range-selector"
+          >
+            <div className="w-full max-w-7xl mx-auto flex justify-center mb-8">
+              <div className="bg-[var(--color-surface)] bg-opacity-70 border border-[var(--color-border)] rounded-xl p-4 shadow-lg">
+                <div className="flex items-center gap-4">
+                  <span className="text-sm font-medium text-[var(--color-text-primary)]">Time Range:</span>
+                  <select
+                    value={timeRange}
+                    onChange={(e) => setTimeRange(e.target.value)}
+                    className="bg-[var(--color-bg)] bg-opacity-80 border border-[var(--color-border)] text-[var(--color-text-primary)] px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
+                  >
+                    <option value="24h">Last 24 Hours</option>
+                    <option value="7d">Last 7 Days</option>
+                    <option value="30d">Last 30 Days</option>
+                    <option value="90d">Last 90 Days</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </ScrollReveal>
+
           {/* Time Range Selector */}
           <ScrollReveal 
             baseOpacity={0.1} 

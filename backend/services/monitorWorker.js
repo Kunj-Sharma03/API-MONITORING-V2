@@ -131,11 +131,52 @@ async function checkMonitors() {
               [monitor.id]
             );
 
+            // 🔥 REAL-TIME EVENT: Emit monitor check result
+            if (global.io) {
+              const checkResult = {
+                monitorId: monitor.id,
+                url: monitor.url,
+                status,
+                responseTime,
+                statusCode,
+                timestamp: new Date().toISOString(),
+                errorMessage
+              };
+              
+              // Emit to all users (for public dashboard)
+              global.io.emit('monitor-check', checkResult);
+              
+              // Emit to specific user's room (for personal dashboard)
+              global.io.to(`user-${monitor.user_id}`).emit('user-monitor-check', checkResult);
+            }
+
             if (prevStatus && prevStatus !== status) {
               if (isCooldownActive(monitor.last_alert_sent_at)) {
                 console.log(`⏳ Alert skipped for ${monitor.url} (cooldown active)`);
               } else {
                 await sendAlert(monitor, status, logDetails, prevStatus);
+                
+                // 🚨 REAL-TIME EVENT: Emit alert
+                if (global.io) {
+                  const alertData = {
+                    monitorId: monitor.id,
+                    url: monitor.url,
+                    status,
+                    prevStatus,
+                    responseTime,
+                    statusCode,
+                    timestamp: new Date().toISOString(),
+                    errorMessage,
+                    userId: monitor.user_id
+                  };
+                  
+                  // Emit alert to all users
+                  global.io.emit('monitor-alert', alertData);
+                  
+                  // Emit to specific user
+                  global.io.to(`user-${monitor.user_id}`).emit('user-alert', alertData);
+                }
+                
                 await safeQuery(
                   `INSERT INTO alerts (monitor_id, reason, error_message)
                    VALUES ($1, $2, $3)`,
