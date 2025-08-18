@@ -26,6 +26,7 @@ const session = require('express-session');
 const passport = require('passport');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
+const { ApolloServer } = require('apollo-server-express');
 const cron = require('node-cron');
 const LOG_CLEANUP_DAYS = parseInt(process.env.LOG_CLEANUP_DAYS || '7');
 const apiLimiter = require('./middleware/rateLimiter');
@@ -36,6 +37,11 @@ const analyticsRoutes = require('./routes/analytics');
 const checkMonitors = require('./services/monitorWorker');
 const { pool } = require('./db');
 const validateEnv = require('./utils/validateEnv');
+
+// GraphQL imports
+const typeDefs = require('./graphql/typeDefs');
+const resolvers = require('./graphql/resolvers');
+const createContext = require('./graphql/context');
 validateEnv();
 
 const app = express();
@@ -55,7 +61,14 @@ const io = new Server(server, {
 app.set('trust proxy', 1);
 
 app.use(cors());
-app.use(express.json());
+
+// Apply JSON middleware only to non-GraphQL routes
+app.use((req, res, next) => {
+  if (req.path === '/graphql') {
+    return next();
+  }
+  express.json()(req, res, next);
+});
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -78,6 +91,16 @@ app.use(session({
 // Initialize Passport
 app.use(passport.initialize());
 app.use(passport.session());
+
+// 🚀 Initialize Apollo GraphQL Server
+const apolloServer = new ApolloServer({
+  typeDefs,
+  resolvers,
+  context: createContext,
+  // Enable GraphQL Playground in development
+  introspection: process.env.NODE_ENV !== 'production',
+  playground: process.env.NODE_ENV !== 'production',
+});
 
 // 🌐 Root route
 app.get('/', (req, res) => {
@@ -165,9 +188,38 @@ process.on('unhandledRejection', (err) => {
 
 const PORT = process.env.PORT || 5000;
 
-connectWithRetry().then(() => {
-  server.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
-    console.log(`🌐 Socket.io server ready for real-time connections`);
-  });
-});
+// 🚀 Start server with Apollo GraphQL
+async function startServer() {
+  try {
+    // Start Apollo Server
+    await apolloServer.start();
+    
+    // Apply GraphQL middleware to Express
+    apolloServer.applyMiddleware({ 
+      app, 
+      path: '/graphql',
+      cors: {
+        origin: process.env.FRONTEND_URL || "http://localhost:3000",
+        credentials: true
+      }
+    });
+    
+    // Connect to database first
+    await connectWithRetry();
+    
+    // Start unified HTTP server (REST + GraphQL + Socket.io)
+    server.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+      console.log(`📡 REST API available at http://localhost:${PORT}/api`);
+      console.log(`🚀 GraphQL available at http://localhost:${PORT}${apolloServer.graphqlPath}`);
+      console.log(`🌐 Socket.io server ready for real-time connections`);
+    });
+    
+  } catch (error) {
+    console.error('❌ Failed to start server:', error);
+    process.exit(1);
+  }
+}
+
+// Start the server
+startServer();
