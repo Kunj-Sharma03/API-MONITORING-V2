@@ -7,6 +7,13 @@ const { generateAlertPDF } = require('../utils/generateAlertPDF');
 const path = require('path');
 const fs = require('fs');
 
+/**
+ * @swagger
+ * tags:
+ *   name: Monitors
+ *   description: API endpoint monitoring management
+ */
+
 // 🔍 Validation rules
 const monitorValidation = [
   body('url').isURL().withMessage('Valid URL is required'),
@@ -20,6 +27,59 @@ const monitorValidation = [
     .withMessage('Alert threshold must be between 1 and 10'),
 ];
 
+/**
+ * @swagger
+ * /api/monitor/create:
+ *   post:
+ *     summary: Create a new monitor
+ *     tags: [Monitors]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - url
+ *             properties:
+ *               url:
+ *                 type: string
+ *                 format: uri
+ *                 description: URL to monitor
+ *                 example: https://api.example.com/health
+ *               interval_minutes:
+ *                 type: integer
+ *                 minimum: 1
+ *                 maximum: 60
+ *                 default: 5
+ *                 description: Check interval in minutes
+ *                 example: 5
+ *               alert_threshold:
+ *                 type: integer
+ *                 minimum: 1
+ *                 maximum: 10
+ *                 default: 3
+ *                 description: Number of failed checks before alerting
+ *                 example: 3
+ *     responses:
+ *       201:
+ *         description: Monitor created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 monitor:
+ *                   $ref: '#/components/schemas/Monitor'
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       500:
+ *         description: Internal server error
+ */
 // 🛠️ Create a new monitor
 router.post('/create', auth, monitorValidation, async (req, res) => {
   const errors = validationResult(req);

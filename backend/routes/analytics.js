@@ -3,6 +3,70 @@ const router = express.Router();
 const auth = require('../middleware/auth');
 const { pool } = require('../db');
 
+/**
+ * @swagger
+ * tags:
+ *   name: Analytics
+ *   description: Monitor analytics and performance metrics
+ */
+
+/**
+ * @swagger
+ * /analytics/overview:
+ *   get:
+ *     summary: Get overview analytics dashboard
+ *     tags: [Analytics]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: range
+ *         schema:
+ *           type: string
+ *           enum: [24h, 7d, 30d, 90d]
+ *           default: 7d
+ *         description: Time range for analytics calculation
+ *     responses:
+ *       200:
+ *         description: Analytics overview data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 totalMonitors:
+ *                   type: integer
+ *                   example: 15
+ *                 activeMonitors:
+ *                   type: integer
+ *                   example: 12
+ *                 averageUptime:
+ *                   type: number
+ *                   format: float
+ *                   example: 98.5
+ *                 alertsInPeriod:
+ *                   type: integer
+ *                   example: 3
+ *                 averageResponseTime:
+ *                   type: number
+ *                   format: float
+ *                   example: 245.6
+ *                 monitorHealth:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       status:
+ *                         type: string
+ *                         example: "UP"
+ *                       count:
+ *                         type: integer
+ *                         example: 8
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
+ */
 // 📊 Get overview analytics
 router.get('/overview', auth, async (req, res) => {
   const { range = '7d' } = req.query;
@@ -104,6 +168,48 @@ router.get('/overview', auth, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /analytics/uptime-history:
+ *   get:
+ *     summary: Get historical uptime data for charts
+ *     tags: [Analytics]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: range
+ *         schema:
+ *           type: string
+ *           enum: [24h, 7d, 30d, 90d]
+ *           default: 7d
+ *         description: Time range for uptime history
+ *     responses:
+ *       200:
+ *         description: Historical uptime data points
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   timestamp:
+ *                     type: string
+ *                     format: date-time
+ *                     example: "2023-07-01T12:00:00Z"
+ *                   uptime_percentage:
+ *                     type: number
+ *                     format: float
+ *                     example: 98.5
+ *                   total_checks:
+ *                     type: integer
+ *                     example: 24
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
+ */
 // 📈 Get uptime history
 router.get('/uptime-history', auth, async (req, res) => {
   const { range = '7d' } = req.query;
@@ -160,6 +266,49 @@ router.get('/uptime-history', auth, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /analytics/response-time:
+ *   get:
+ *     summary: Get historical response time data for performance charts
+ *     tags: [Analytics]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: range
+ *         schema:
+ *           type: string
+ *           enum: [24h, 7d, 30d, 90d]
+ *           default: 7d
+ *         description: Time range for response time history
+ *     responses:
+ *       200:
+ *         description: Historical response time data points
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       time_bucket:
+ *                         type: string
+ *                         format: date-time
+ *                         example: "2023-07-01T12:00:00Z"
+ *                       avg_response_time:
+ *                         type: number
+ *                         format: float
+ *                         example: 245.6
+ *                         description: Average response time in milliseconds
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
+ */
 // ⚡ Get response time history
 router.get('/response-time', auth, async (req, res) => {
   const { range = '7d' } = req.query;
@@ -216,6 +365,45 @@ router.get('/response-time', auth, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /analytics/alerts-history:
+ *   get:
+ *     summary: Get historical alerts data for monitoring trends
+ *     tags: [Analytics]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: range
+ *         schema:
+ *           type: string
+ *           enum: [24h, 7d, 30d, 90d]
+ *           default: 7d
+ *         description: Time range for alerts history
+ *     responses:
+ *       200:
+ *         description: Historical alerts data points
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   time_bucket:
+ *                     type: string
+ *                     format: date-time
+ *                     example: "2023-07-01T12:00:00Z"
+ *                   alert_count:
+ *                     type: integer
+ *                     example: 3
+ *                     description: Number of alerts in this time period
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
+ */
 // 🚨 Get alerts history
 router.get('/alerts-history', auth, async (req, res) => {
   const { range = '7d' } = req.query;
@@ -267,6 +455,60 @@ router.get('/alerts-history', auth, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /analytics/monitor-stats:
+ *   get:
+ *     summary: Get per-monitor statistics and performance metrics
+ *     tags: [Analytics]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: range
+ *         schema:
+ *           type: string
+ *           enum: [24h, 7d, 30d, 90d]
+ *           default: 7d
+ *         description: Time range for monitor statistics
+ *     responses:
+ *       200:
+ *         description: Per-monitor statistics data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   monitor_id:
+ *                     type: integer
+ *                     example: 1
+ *                   monitor_name:
+ *                     type: string
+ *                     example: "My Website"
+ *                   url:
+ *                     type: string
+ *                     example: "https://example.com"
+ *                   uptime_percentage:
+ *                     type: number
+ *                     format: float
+ *                     example: 99.2
+ *                   avg_response_time:
+ *                     type: number
+ *                     format: float
+ *                     example: 180.5
+ *                   total_checks:
+ *                     type: integer
+ *                     example: 1440
+ *                   total_alerts:
+ *                     type: integer
+ *                     example: 2
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
+ */
 // 📊 Get per-monitor stats
 router.get('/monitor-stats', auth, async (req, res) => {
   const { range = '7d' } = req.query;

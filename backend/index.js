@@ -42,6 +42,10 @@ const validateEnv = require('./utils/validateEnv');
 const typeDefs = require('./graphql/typeDefs');
 const resolvers = require('./graphql/resolvers');
 const createContext = require('./graphql/context');
+
+// Swagger imports
+const { swaggerSpec, swaggerUi, swaggerOptions } = require('./swagger');
+
 validateEnv();
 
 const app = express();
@@ -115,6 +119,15 @@ app.use('/api', authRoutes);
 app.use('/api', apiRoutes);
 app.use('/api/monitor', monitorRoutes);
 app.use('/api/analytics', analyticsRoutes);
+
+// 📚 API Documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerOptions));
+
+// 📄 Swagger JSON endpoint
+app.get('/swagger.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerSpec);
+});
 
 // ⏱️ Cron monitor check (runs every minute)
 let isChecking = false;
