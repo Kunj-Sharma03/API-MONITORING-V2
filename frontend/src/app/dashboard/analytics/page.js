@@ -117,14 +117,15 @@ export default function AnalyticsPage() {
   }, [token, timeRange]);
 
   return (
-    <div className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text-primary)]">
-      <main className="flex-1 px-4 lg:px-8 py-6 lg:py-10 pt-16 md:pt-6 max-w-7xl mx-auto">
+    <div className="min-h-screen bg-transparent text-[var(--color-text-primary)]">
+      <main className="flex-1 py-6 lg:py-10 pt-16 md:pt-6">
+        <div className="w-full max-w-7xl mx-auto px-4 lg:px-8">
         {/* Header */}
         <ScrollReveal baseOpacity={0.1} enableBlur={true} baseRotation={1} blurStrength={4}>
           <div className="mb-8 lg:mb-12">
             <div className="flex items-center gap-2 lg:gap-3 mb-3 lg:mb-4">
               <BarChart3 className="w-6 h-6 lg:w-8 lg:h-8 text-[var(--color-primary)]" />
-              <h1 className="text-2xl lg:text-4xl font-bold text-[var(--color-text-primary)]">
+              <h1 className="text-2xl lg:text-4xl font-bold text-[var(--color-text-primary)] font-orcherum">
                 Analytics Dashboard
               </h1>
             </div>
@@ -136,7 +137,7 @@ export default function AnalyticsPage() {
 
         {/* Filters */}
         <ScrollReveal baseOpacity={0.1} enableBlur={true} baseRotation={1} blurStrength={4}>
-          <div className="mb-6 lg:mb-8 bg-[var(--color-surface)] bg-opacity-70 border border-[var(--color-border)] rounded-2xl p-4 lg:p-6 shadow-lg">
+          <div className="mb-6 lg:mb-8 bg-black/40 backdrop-blur-xl border border-[#00ff88]/40 rounded-2xl p-4 lg:p-6 shadow-2xl">
             <div className="flex flex-col lg:flex-row lg:flex-wrap lg:items-center gap-4 lg:gap-6">
               {/* Time Range Selector */}
               <div className="flex items-center gap-3">
@@ -145,7 +146,7 @@ export default function AnalyticsPage() {
                 <select
                   value={timeRange}
                   onChange={(e) => setTimeRange(e.target.value)}
-                  className="bg-[var(--color-bg)] bg-opacity-80 border border-[var(--color-border)] text-[var(--color-text-primary)] px-3 lg:px-4 py-1.5 lg:py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
+                  className="bg-black/40 backdrop-blur-md border border-[#00ff88]/30 text-[var(--color-text-primary)] px-3 lg:px-4 py-1.5 lg:py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                 >
                   <option value="24h">Last 24 Hours</option>
                   <option value="7d">Last 7 Days</option>
@@ -161,7 +162,7 @@ export default function AnalyticsPage() {
                 <select
                   value={selectedMonitor}
                   onChange={(e) => setSelectedMonitor(e.target.value)}
-                  className="bg-[var(--color-bg)] bg-opacity-80 border border-[var(--color-border)] text-[var(--color-text-primary)] px-4 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent min-w-[200px]"
+                  className="bg-black/40 backdrop-blur-md border border-[#00ff88]/30 text-[var(--color-text-primary)] px-4 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent min-w-[200px]"
                 >
                   <option value="all">All Monitors</option>
                   {analytics.monitorStats.map(monitor => (
@@ -179,7 +180,7 @@ export default function AnalyticsPage() {
         <ScrollReveal baseOpacity={0.1} enableBlur={true} baseRotation={1} blurStrength={4}>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
             {/* Overall Uptime */}
-            <div className="bg-[var(--color-surface)] bg-opacity-70 border border-[var(--color-border)] rounded-2xl p-6 shadow-lg">
+            <div className="bg-black/40 backdrop-blur-xl border border-[#00ff88]/40 rounded-2xl p-6 shadow-2xl">
               <div className="flex items-center justify-between mb-4">
                 <Activity className="w-8 h-8 text-[var(--color-success)]" />
                 <div className="flex items-center gap-1 text-xs">
@@ -187,14 +188,14 @@ export default function AnalyticsPage() {
                   <span className="text-[var(--color-success)]">+2.3%</span>
                 </div>
               </div>
-              <h3 className="text-sm text-[var(--color-text-secondary)] mb-2">Overall Uptime</h3>
-              <p className="text-3xl font-bold text-[var(--color-success)]">
+              <h3 className="text-sm text-[var(--color-text-secondary)] mb-2 font-orcherum">Overall Uptime</h3>
+              <p className="text-3xl font-bold text-[var(--color-success)] font-orcherum">
                 {analytics.loading ? '...' : `${analytics.overview?.averageUptime || 0}%`}
               </p>
             </div>
 
             {/* Average Response Time */}
-            <div className="bg-[var(--color-surface)] bg-opacity-70 border border-[var(--color-border)] rounded-2xl p-6 shadow-lg">
+            <div className="bg-black/40 backdrop-blur-xl border border-[#00ff88]/40 rounded-2xl p-6 shadow-2xl">
               <div className="flex items-center justify-between mb-4">
                 <Zap className="w-8 h-8 text-[var(--color-primary)]" />
                 <div className="flex items-center gap-1 text-xs">
@@ -202,14 +203,14 @@ export default function AnalyticsPage() {
                   <span className="text-[var(--color-success)]">-15ms</span>
                 </div>
               </div>
-              <h3 className="text-sm text-[var(--color-text-secondary)] mb-2">Avg Response Time</h3>
-              <p className="text-3xl font-bold text-[var(--color-primary)]">
+              <h3 className="text-sm text-[var(--color-text-secondary)] mb-2 font-orcherum">Avg Response Time</h3>
+              <p className="text-3xl font-bold text-[var(--color-primary)] font-orcherum">
                 {analytics.loading ? '...' : `${analytics.overview?.averageResponseTime || 0}ms`}
               </p>
             </div>
 
             {/* Total Incidents */}
-            <div className="bg-[var(--color-surface)] bg-opacity-70 border border-[var(--color-border)] rounded-2xl p-6 shadow-lg">
+            <div className="bg-black/40 backdrop-blur-xl border border-[#00ff88]/40 rounded-2xl p-6 shadow-2xl">
               <div className="flex items-center justify-between mb-4">
                 <AlertTriangle className="w-8 h-8 text-[var(--color-error)]" />
                 <div className="flex items-center gap-1 text-xs">
@@ -217,14 +218,14 @@ export default function AnalyticsPage() {
                   <span className="text-[var(--color-success)]">-2</span>
                 </div>
               </div>
-              <h3 className="text-sm text-[var(--color-text-secondary)] mb-2">Total Incidents</h3>
-              <p className="text-3xl font-bold text-[var(--color-error)]">
+              <h3 className="text-sm text-[var(--color-text-secondary)] mb-2 font-orcherum">Total Incidents</h3>
+              <p className="text-3xl font-bold text-[var(--color-error)] font-orcherum">
                 {analytics.loading ? '...' : analytics.overview?.activeIncidents || 0}
               </p>
             </div>
 
             {/* Monitors Tracked */}
-            <div className="bg-[var(--color-surface)] bg-opacity-70 border border-[var(--color-border)] rounded-2xl p-6 shadow-lg">
+            <div className="bg-black/40 backdrop-blur-xl border border-[#00ff88]/40 rounded-2xl p-6 shadow-2xl">
               <div className="flex items-center justify-between mb-4">
                 <Globe className="w-8 h-8 text-[var(--color-info)]" />
                 <div className="flex items-center gap-1 text-xs">
@@ -232,8 +233,8 @@ export default function AnalyticsPage() {
                   <span className="text-[var(--color-success)]">+1</span>
                 </div>
               </div>
-              <h3 className="text-sm text-[var(--color-text-secondary)] mb-2">Monitors Tracked</h3>
-              <p className="text-3xl font-bold text-[var(--color-info)]">
+              <h3 className="text-sm text-[var(--color-text-secondary)] mb-2 font-orcherum">Monitors Tracked</h3>
+              <p className="text-3xl font-bold text-[var(--color-info)] font-orcherum">
                 {analytics.loading ? '...' : analytics.overview?.totalMonitors || 0}
               </p>
             </div>
@@ -243,7 +244,7 @@ export default function AnalyticsPage() {
         {/* Monitor Status Grid */}
         <ScrollReveal baseOpacity={0.1} enableBlur={true} baseRotation={1} blurStrength={4}>
           <div className="mb-12">
-            <h2 className="text-2xl font-bold text-[var(--color-text-primary)] mb-6 flex items-center gap-3">
+            <h2 className="text-2xl font-bold text-[var(--color-text-primary)] mb-6 flex items-center gap-3 font-orcherum">
               <Globe className="w-6 h-6 text-[var(--color-primary)]" />
               Monitor Status Overview
             </h2>
@@ -252,7 +253,7 @@ export default function AnalyticsPage() {
               {analytics.monitorStats.map(monitor => (
                 <div 
                   key={monitor.id} 
-                  className="bg-[var(--color-surface)] bg-opacity-70 border border-[var(--color-border)] rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all cursor-pointer"
+                  className="bg-black/35 backdrop-blur-xl border border-[#00ff88]/35 rounded-2xl p-6 shadow-2xl hover:shadow-[0_0_30px_rgba(0,255,136,0.15)] transition-all cursor-pointer"
                   onClick={() => setSelectedMonitor(monitor.id)}
                 >
                   <div className="flex items-center justify-between mb-4">
@@ -304,10 +305,10 @@ export default function AnalyticsPage() {
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-12">
           {/* Uptime Trend Chart */}
           <ScrollReveal baseOpacity={0.1} enableBlur={true} baseRotation={1} blurStrength={4}>
-            <div className="bg-[var(--color-surface)] bg-opacity-70 border border-[var(--color-border)] rounded-3xl p-8 shadow-2xl">
+            <div className="bg-black/35 backdrop-blur-xl border border-[#00ff88]/35 rounded-3xl p-8 shadow-2xl">
               <div className="flex items-center gap-3 mb-6">
                 <Activity className="w-6 h-6 text-[var(--color-success)]" />
-                <h3 className="text-xl font-bold text-[var(--color-text-primary)]">Uptime Trend</h3>
+                <h3 className="text-xl font-bold text-[var(--color-text-primary)] font-orcherum">Uptime Trend</h3>
               </div>
               
               {analytics.loading ? (
@@ -385,10 +386,10 @@ export default function AnalyticsPage() {
 
           {/* Response Time Chart */}
           <ScrollReveal baseOpacity={0.1} enableBlur={true} baseRotation={1} blurStrength={4}>
-            <div className="bg-[var(--color-surface)] bg-opacity-70 border border-[var(--color-border)] rounded-3xl p-8 shadow-2xl">
+            <div className="bg-black/35 backdrop-blur-xl border border-[#00ff88]/35 rounded-3xl p-8 shadow-2xl">
               <div className="flex items-center gap-3 mb-6">
                 <Zap className="w-6 h-6 text-[var(--color-primary)]" />
-                <h3 className="text-xl font-bold text-[var(--color-text-primary)]">Response Time</h3>
+                <h3 className="text-xl font-bold text-[var(--color-text-primary)] font-orcherum">Response Time</h3>
               </div>
               
               {analytics.loading ? (
@@ -466,10 +467,10 @@ export default function AnalyticsPage() {
 
         {/* Alerts History Chart */}
         <ScrollReveal baseOpacity={0.1} enableBlur={true} baseRotation={1} blurStrength={4}>
-          <div className="bg-[var(--color-surface)] bg-opacity-70 border border-[var(--color-border)] rounded-3xl p-8 shadow-2xl mb-12">
+          <div className="bg-black/35 backdrop-blur-xl border border-[#00ff88]/35 rounded-3xl p-8 shadow-2xl mb-12">
             <div className="flex items-center gap-3 mb-6">
               <AlertTriangle className="w-6 h-6 text-[var(--color-error)]" />
-              <h3 className="text-xl font-bold text-[var(--color-text-primary)]">Alerts & Incidents History</h3>
+              <h3 className="text-xl font-bold text-[var(--color-text-primary)] font-orcherum">Alerts & Incidents History</h3>
             </div>
             
             {analytics.loading ? (
@@ -539,6 +540,7 @@ export default function AnalyticsPage() {
             )}
           </div>
         </ScrollReveal>
+        </div>
       </main>
     </div>
   );

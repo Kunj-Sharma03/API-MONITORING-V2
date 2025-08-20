@@ -17,9 +17,9 @@ export default function SettingsPage() {
   });
 
   return (
-    <div className="space-y-8">
+    <div className="w-full max-w-7xl mx-auto px-4 md:px-8 space-y-8">
       <div>
-        <h1 className="text-3xl font-bold text-white mb-2">Settings</h1>
+        <h1 className="text-3xl font-bold text-white mb-2 font-orcherum">Settings</h1>
         <p className="text-gray-400">Manage your account preferences and notification settings</p>
       </div>
 

@@ -1,3 +1,34 @@
+/* Import Gen Z style fonts - MUST be first */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Work+Sans:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Russo+One&family=Iceberg&display=swap');
+
+/* Custom Orcherum font */
+@font-face {
+  font-family: 'Orcherum';
+  src: url('/fonts/tbj-orcherum-mini.high-extra-bold.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Custom Nineties font */
+@font-face {
+  font-family: 'Nineties';
+  src: url('/fonts/NinetiesDisplay.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Custom Direction font */
+@font-face {
+  font-family: 'Direction';
+  src: url('/fonts/Direction-R9e63.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* Sidebar collapsed state: hide text labels */
 .sidebar-label {
   transition: opacity 0.2s, width 0.2s;
@@ -9,6 +40,16 @@
   width: 0;
   pointer-events: none;
 }
+
+/* Import Direction font first */
+@font-face {
+  font-family: 'Direction';
+  src: url('/fonts/Direction-R9e63.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -19,26 +60,55 @@
 
 @layer base {
   :root {
-    /* Dashboard Palette */
-    --color-bg: rgba(15, 15, 16, 0.6);
-    --color-surface: rgba(24, 24, 27, 0.6);
-    --color-border: #232329;
-    --color-primary: #3b82f6;
-    --color-secondary: #8b5cf6;
-    --color-success: #22c55e;
-    --color-warning: #eab308;
-    --color-error: #ef4444;
-    --color-text-primary: #f9fafb;
-    --color-text-secondary: #9ca3af;
-    --color-hover: #1f2937;
-    --color-chart-green: #4ade80;
-    --color-chart-blue: #60a5fa;
-    --color-chart-pink: #f472b6;
+    /* Enhanced Font Variables for Dashboard Theme */
+    --font-orcherum: 'Orcherum', 'Inter', sans-serif;      /* Bold dashboard font */
+    --font-nineties: 'Nineties', 'Inter', sans-serif;     /* Primary Nineties display font */
+    --font-direction: 'Direction', 'Inter', 'Work Sans', monospace;
+    --font-genz-primary: 'Inter', sans-serif;          /* Sharp, clean Gen Z font */
+    --font-genz-display: 'Work Sans', sans-serif;      /* Bold display font */
+    --font-genz-accent: 'Space Grotesk', sans-serif;   /* Modern geometric font */
+    --font-orbitron: 'Orbitron', sans-serif;
+    --font-electrolize: 'Electrolize', sans-serif;
+
+    /* Razer Gaming Green Theme */
+    --color-bg: rgba(0, 0, 0, 0.95);                /* Pure black background */
+    --color-surface: rgba(16, 16, 16, 0.9);         /* Dark gray surface */
+    --color-border: #00ff88;                         /* Razer bright green */
+    --color-primary: #00ff88;                        /* Razer green primary */
+    --color-secondary: #44ff44;                      /* Lighter green */
+    --color-accent: #88ff88;                         /* Subtle green accent */
+    --color-success: #00ff88;                        /* Green success */
+    --color-warning: #ffaa00;                        /* Orange warning */
+    --color-error: #ff4444;                          /* Red error */
+    --color-text-primary: #ffffff;                   /* White text */
+    --color-text-secondary: #cccccc;                 /* Light gray secondary */
+    --color-text-muted: #888888;                     /* Muted gray */
+    --color-hover: rgba(0, 255, 136, 0.1);          /* Green hover state */
+    --color-glow: #00ff88;                           /* Razer green glow */
+    
+    /* Chart colors with Razer gaming theme */
+    --color-chart-green: #00ff88;
+    --color-chart-light-green: #44ff44;
+    --color-chart-dark-green: #00cc66;
+    --color-chart-accent: #88ff88;
+    --color-chart-warning: #ffaa00;
+    
+    /* Glassmorphism with Razer green tint */
+    --glass-bg: rgba(0, 255, 136, 0.05);
+    --glass-border: rgba(0, 255, 136, 0.2);
+    --glass-shadow: 0 8px 32px rgba(0, 255, 136, 0.1);
   }
 
   body, html {
-    background: var(--color-bg);
+    /* Dark gaming background */
+    background: linear-gradient(135deg, 
+      rgba(0, 0, 0, 1) 0%, 
+      rgba(8, 8, 8, 1) 30%, 
+      rgba(16, 16, 16, 1) 70%, 
+      rgba(24, 24, 24, 1) 100%
+    ) fixed;
     color: var(--color-text-primary);
+    font-family: var(--font-orbitron);
     /* Prevent zoom on mobile */
     -webkit-text-size-adjust: 100%;
     -ms-text-size-adjust: 100%;
@@ -46,7 +116,50 @@
     /* Ensure proper mobile layout */
     width: 100%;
     max-width: 100%;
-    overflow-x: hidden;
+  /* Allow vertical scroll; clamp horizontal overflow */
+  overflow-x: hidden;
+  overflow-y: auto;
+    min-height: 100vh;
+  }
+
+  /* Enhanced Typography with Orcherum + Dashboard Fonts */
+  .font-orcherum { 
+    font-family: var(--font-orcherum) !important;
+    font-weight: 800;
+  }
+  .font-nineties { 
+    font-family: var(--font-nineties) !important;
+    font-weight: 400;
+  }
+  .font-direction { 
+    font-family: var(--font-direction) !important;
+    font-weight: 700;
+  }
+  .font-genz-primary { 
+    font-family: var(--font-genz-primary) !important;
+    font-weight: 600;
+  }
+  .font-genz-display { 
+    font-family: var(--font-genz-display) !important;
+    font-weight: 800;
+  }
+  .font-genz-accent { 
+    font-family: var(--font-genz-accent) !important;
+    font-weight: 600;
+  }
+  .font-orbitron { 
+    font-family: var(--font-orbitron) !important;
+  }
+  .font-electrolize { 
+    font-family: var(--font-electrolize) !important;
+  }
+
+  /* Clean typography - no glow effects */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-direction) !important;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    /* Removed glow effect */
   }
 
   /* Prevent zoom on form inputs on iOS */
@@ -76,42 +189,129 @@
   }
 
   .dark {
-    --sidebar: #18181b;
-    --sidebar-foreground: #f9fafb;
-    --sidebar-primary: #3b82f6;
-    --sidebar-primary-foreground: #f9fafb;
-    --sidebar-accent: #8b5cf6;
-    --sidebar-accent-foreground: #f9fafb;
-    --sidebar-border: #232329;
-    --sidebar-ring: #3b82f6;
-    --background: #0f0f10;
-    --foreground: #f9fafb;
-    --card: #18181b;
-    --card-foreground: #f9fafb;
-    --popover: #18181b;
-    --popover-foreground: #f9fafb;
-    --primary: #3b82f6;
-    --primary-foreground: #f9fafb;
-    --secondary: #8b5cf6;
-    --secondary-foreground: #f9fafb;
-    --muted: #232329;
-    --muted-foreground: #9ca3af;
-    --accent: #8b5cf6;
-    --accent-foreground: #f9fafb;
-    --destructive: #ef4444;
-    --border: #232329;
-    --input: #232329;
-    --ring: #3b82f6;
-    --success: #22c55e;
-    --warning: #eab308;
-    --error: #ef4444;
-    --hover: #1f2937;
-    --text-primary: #f9fafb;
-    --text-secondary: #9ca3af;
-    --chart-green: #4ade80;
-    --chart-blue: #60a5fa;
-    --chart-pink: #f472b6;
+    --sidebar: #000000;
+    --sidebar-foreground: #ffffff;
+    --sidebar-primary: #00ff88;              /* Razer green */
+    --sidebar-primary-foreground: #000000;
+    --sidebar-accent: #44ff44;               /* Light green */
+    --sidebar-accent-foreground: #000000;
+    --sidebar-border: #00ff88;               /* Green border */
+    --sidebar-ring: #00ff88;                 /* Green ring */
+    --background: var(--color-bg);           /* Dark background */
+    --foreground: #ffffff;
+    --card: #111111;
+    --card-foreground: #ffffff;
+    --popover: #111111;
+    --popover-foreground: #ffffff;
+    --primary: #00ff88;                      /* Razer green */
+    --primary-foreground: #000000;
+    --secondary: #44ff44;                    /* Light green */
+    --secondary-foreground: #000000;
+    --muted: #333333;
+    --muted-foreground: #cccccc;
+    --accent: #88ff88;                       /* Subtle green */
+    --accent-foreground: #000000;
+    --destructive: #ff4444;                  /* Red */
+    --border: #00ff88;                       /* Green border */
+    --input: #222222;
+    --ring: #00ff88;                         /* Green ring */
+    --success: #00ff88;                      /* Green success */
+    --warning: #ffaa00;                      /* Orange warning */
+    --error: #ff4444;                        /* Red error */
+    --hover: rgba(0, 255, 136, 0.1);        /* Green hover */
+    --text-primary: #ffffff;
+    --text-secondary: #cccccc;
+    --chart-green: #00ff88;                  /* Razer green */
+    --chart-blue: #00ff88;                   /* Use green instead */
+    --chart-pink: #ff4444;                   /* Red */
   }
+}
+
+/* No glow effects - clean modern look */
+.neon-glow {
+  /* Removed all glow effects */
+  filter: none;
+}
+
+.neon-text {
+  color: var(--color-primary) !important;
+  /* Removed all glow effects */
+  font-family: var(--font-direction) !important;
+}
+
+/* Clean typography for large hero text */
+.text-4xl.neon-text,
+.text-6xl.neon-text,
+.text-8xl.neon-text {
+  /* Removed all glow effects */
+  font-family: var(--font-direction) !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.05em;
+}
+
+.glass-morphism {
+  background: rgba(0, 255, 136, 0.05) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(0, 255, 136, 0.2);
+  border-radius: 12px;
+  box-shadow: 
+    0 8px 32px rgba(0, 255, 136, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Retro grid removed - simpler background */
+.retro-grid {
+  position: relative;
+}
+
+.retro-grid::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: transparent;
+  pointer-events: none;
+}
+
+@keyframes grid-move { 
+  from { background-position: 0 0; } 
+  to { background-position: 48px 48px; } 
+}
+
+.retro-button {
+  background: linear-gradient(45deg, var(--color-primary), var(--color-secondary)) !important;
+  border: 2px solid var(--color-primary) !important;
+  color: #000000 !important;
+  font-family: var(--font-genz-display) !important;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  transition: transform .25s ease, box-shadow .25s ease, filter .25s ease;
+  position: relative;
+  overflow: hidden;
+  /* Removed text-shadow glow */
+}
+
+.retro-button:hover { 
+  transform: translateY(-2px) scale(1.01); 
+  box-shadow: 
+    0 6px 20px rgba(0, 255, 136, 0.3);
+  filter: brightness(1.1);
+}
+
+.retro-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+  transition: left 0.5s;
+}
+
+.retro-button:hover::before { 
+  left: 100%; 
 }
 
 @theme inline {

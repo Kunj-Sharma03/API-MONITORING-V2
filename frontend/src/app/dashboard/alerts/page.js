@@ -66,8 +66,8 @@ export default function AlertsPage() {
     });
 
   return (
-    <div className="relative z-10 w-full max-w-2xl lg:max-w-4xl mx-auto mt-6 lg:mt-12 px-4 lg:px-0">
-      <h1 className="text-2xl lg:text-3xl font-bold mb-6 lg:mb-8 flex items-center gap-2 lg:gap-3">
+    <div className="relative z-10 w-full max-w-7xl mx-auto mt-6 lg:mt-12 px-4">
+      <h1 className="text-2xl lg:text-3xl font-bold font-orcherum mb-6 lg:mb-8 flex items-center gap-2 lg:gap-3">
         <MonitorIcon className="w-6 h-6 lg:w-8 lg:h-8 text-[var(--color-primary)]" />
         Alerts
       </h1>
@@ -157,7 +157,7 @@ export default function AlertsPage() {
                   <span className="text-[var(--color-danger)]">{alert.error_message}</span>
                 )}
               </div>
-              <div className="text-xs text-[var(--color-text-secondary)] mt-1">
+              <div className="text-xs text-[var(--color-text-secondary)] mt-1 font-orcherum">
                 {new Date(alert.triggered_at).toLocaleString()}
               </div>
             </li>

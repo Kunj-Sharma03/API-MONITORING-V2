@@ -6,6 +6,7 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import DarkVeil from '@/components/background/DarkVeil';
 import ScrollReveal from '@/components/ui/ScrollReveal';
+import CardSwap, { Card } from '@/components/ui/cardSwap';
 import { ArrowRight, Monitor, Shield, BarChart3, Eye, AlertTriangle, Zap, Clock, Users, Database, Mail, Code, Activity, Bell } from 'lucide-react';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -55,7 +56,7 @@ export default function Home() {
                 <Eye className="w-6 h-6 text-[#00ff88]" />
               </div>
               <span className="text-2xl font-bold text-white font-nineties tracking-tight">
-                AP-EYE
+                EY3-API
               </span>
             </div>
             <div className="flex items-center space-x-4">
@@ -75,7 +76,7 @@ export default function Home() {
         <div className="max-w-4xl mx-auto text-center space-y-8">
           <ScrollReveal delay={200}>
             <h1 className="text-5xl sm:text-7xl lg:text-8xl font-bold text-white font-nineties leading-tight tracking-tight">
-              AP-EYE
+              EY3-API
             </h1>
           </ScrollReveal>
           
@@ -119,96 +120,93 @@ export default function Home() {
           </ScrollReveal>
 
           <ScrollReveal delay={400}>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {/* Real-time Monitoring */}
-              <div className="glass-morphism p-6 border border-[#00ff88]/20 rounded-xl hover:border-[#00ff88]/40 transition-all duration-300 group">
-                <div className="space-y-4">
-                  <div className="p-3 bg-[#00ff88]/10 rounded-lg w-fit group-hover:bg-[#00ff88]/20 transition-all duration-300">
-                    <Activity className="w-8 h-8 text-[#00ff88]" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <CardSwap className="h-64">
+                <Card className="glass-morphism p-6 border border-[#00ff88]/20 rounded-xl">
+                  <div className="space-y-4">
+                    <div className="p-3 bg-[#00ff88]/10 rounded-lg w-fit">
+                      <Activity className="w-8 h-8 text-[#00ff88]" />
+                    </div>
+                    <h3 className="text-xl font-bold text-white font-genz-display">
+                      Real-time Monitoring
+                    </h3>
+                    <p className="text-gray-300 font-genz-primary">
+                      Track API performance, response times, and uptime with millisecond precision.
+                    </p>
                   </div>
-                  <h3 className="text-xl font-bold text-white font-genz-display">
-                    Real-time Monitoring
-                  </h3>
-                  <p className="text-gray-300 font-genz-primary">
-                    Track API performance, response times, and uptime with millisecond precision.
-                  </p>
-                </div>
-              </div>
+                </Card>
+                <Card className="glass-morphism p-6 border border-[#00ff88]/20 rounded-xl">
+                  <div className="space-y-4">
+                    <div className="p-3 bg-[#00ff88]/10 rounded-lg w-fit">
+                      <BarChart3 className="w-8 h-8 text-[#00ff88]" />
+                    </div>
+                    <h3 className="text-xl font-bold text-white font-genz-display">
+                      Advanced Analytics
+                    </h3>
+                    <p className="text-gray-300 font-genz-primary">
+                      Deep insights into API usage patterns, trends, and performance metrics.
+                    </p>
+                  </div>
+                </Card>
+              </CardSwap>
 
-              {/* Smart Alerts */}
-              <div className="glass-morphism p-6 border border-[#00ff88]/20 rounded-xl hover:border-[#00ff88]/40 transition-all duration-300 group">
-                <div className="space-y-4">
-                  <div className="p-3 bg-[#00ff88]/10 rounded-lg w-fit group-hover:bg-[#00ff88]/20 transition-all duration-300">
-                    <Bell className="w-8 h-8 text-[#00ff88]" />
+              <CardSwap className="h-64">
+                <Card className="glass-morphism p-6 border border-[#00ff88]/20 rounded-xl">
+                  <div className="space-y-4">
+                    <div className="p-3 bg-[#00ff88]/10 rounded-lg w-fit">
+                      <Bell className="w-8 h-8 text-[#00ff88]" />
+                    </div>
+                    <h3 className="text-xl font-bold text-white font-genz-display">
+                      Smart Alerts
+                    </h3>
+                    <p className="text-gray-300 font-genz-primary">
+                      Intelligent notifications for downtime, performance issues, and anomalies.
+                    </p>
                   </div>
-                  <h3 className="text-xl font-bold text-white font-genz-display">
-                    Smart Alerts
-                  </h3>
-                  <p className="text-gray-300 font-genz-primary">
-                    Intelligent notifications for downtime, performance issues, and anomalies.
-                  </p>
-                </div>
-              </div>
+                </Card>
+                <Card className="glass-morphism p-6 border border-[#00ff88]/20 rounded-xl">
+                  <div className="space-y-4">
+                    <div className="p-3 bg-[#00ff88]/10 rounded-lg w-fit">
+                      <Shield className="w-8 h-8 text-[#00ff88]" />
+                    </div>
+                    <h3 className="text-xl font-bold text-white font-genz-display">
+                      Security Monitoring
+                    </h3>
+                    <p className="text-gray-300 font-genz-primary">
+                      Detect and prevent security threats, rate limit violations, and attacks.
+                    </p>
+                  </div>
+                </Card>
+              </CardSwap>
 
-              {/* Easy Integration */}
-              <div className="glass-morphism p-6 border border-[#00ff88]/20 rounded-xl hover:border-[#00ff88]/40 transition-all duration-300 group">
-                <div className="space-y-4">
-                  <div className="p-3 bg-[#00ff88]/10 rounded-lg w-fit group-hover:bg-[#00ff88]/20 transition-all duration-300">
-                    <Code className="w-8 h-8 text-[#00ff88]" />
+              <CardSwap className="h-64">
+                <Card className="glass-morphism p-6 border border-[#00ff88]/20 rounded-xl">
+                  <div className="space-y-4">
+                    <div className="p-3 bg-[#00ff88]/10 rounded-lg w-fit">
+                      <Code className="w-8 h-8 text-[#00ff88]" />
+                    </div>
+                    <h3 className="text-xl font-bold text-white font-genz-display">
+                      Easy Integration
+                    </h3>
+                    <p className="text-gray-300 font-genz-primary">
+                      Simple setup with RESTful APIs, webhooks, and popular frameworks.
+                    </p>
                   </div>
-                  <h3 className="text-xl font-bold text-white font-genz-display">
-                    Easy Integration
-                  </h3>
-                  <p className="text-gray-300 font-genz-primary">
-                    Simple setup with RESTful APIs, webhooks, and popular frameworks.
-                  </p>
-                </div>
-              </div>
-
-              {/* Advanced Analytics */}
-              <div className="glass-morphism p-6 border border-[#00ff88]/20 rounded-xl hover:border-[#00ff88]/40 transition-all duration-300 group">
-                <div className="space-y-4">
-                  <div className="p-3 bg-[#00ff88]/10 rounded-lg w-fit group-hover:bg-[#00ff88]/20 transition-all duration-300">
-                    <BarChart3 className="w-8 h-8 text-[#00ff88]" />
+                </Card>
+                <Card className="glass-morphism p-6 border border-[#00ff88]/20 rounded-xl">
+                  <div className="space-y-4">
+                    <div className="p-3 bg-[#00ff88]/10 rounded-lg w-fit">
+                      <Database className="w-8 h-8 text-[#00ff88]" />
+                    </div>
+                    <h3 className="text-xl font-bold text-white font-genz-display">
+                      Data Insights
+                    </h3>
+                    <p className="text-gray-300 font-genz-primary">
+                      Comprehensive data collection and analysis for informed decisions.
+                    </p>
                   </div>
-                  <h3 className="text-xl font-bold text-white font-genz-display">
-                    Advanced Analytics
-                  </h3>
-                  <p className="text-gray-300 font-genz-primary">
-                    Deep insights into API usage patterns, trends, and performance metrics.
-                  </p>
-                </div>
-              </div>
-
-              {/* Security Monitoring */}
-              <div className="glass-morphism p-6 border border-[#00ff88]/20 rounded-xl hover:border-[#00ff88]/40 transition-all duration-300 group">
-                <div className="space-y-4">
-                  <div className="p-3 bg-[#00ff88]/10 rounded-lg w-fit group-hover:bg-[#00ff88]/20 transition-all duration-300">
-                    <Shield className="w-8 h-8 text-[#00ff88]" />
-                  </div>
-                  <h3 className="text-xl font-bold text-white font-genz-display">
-                    Security Monitoring
-                  </h3>
-                  <p className="text-gray-300 font-genz-primary">
-                    Detect and prevent security threats, rate limit violations, and attacks.
-                  </p>
-                </div>
-              </div>
-
-              {/* Data Insights */}
-              <div className="glass-morphism p-6 border border-[#00ff88]/20 rounded-xl hover:border-[#00ff88]/40 transition-all duration-300 group">
-                <div className="space-y-4">
-                  <div className="p-3 bg-[#00ff88]/10 rounded-lg w-fit group-hover:bg-[#00ff88]/20 transition-all duration-300">
-                    <Database className="w-8 h-8 text-[#00ff88]" />
-                  </div>
-                  <h3 className="text-xl font-bold text-white font-genz-display">
-                    Data Insights
-                  </h3>
-                  <p className="text-gray-300 font-genz-primary">
-                    Comprehensive data collection and analysis for informed decisions.
-                  </p>
-                </div>
-              </div>
+                </Card>
+              </CardSwap>
             </div>
           </ScrollReveal>
         </div>
@@ -266,7 +264,7 @@ export default function Home() {
               Ready to Monitor?
             </h2>
             <p className="text-lg sm:text-xl text-gray-300 font-genz-primary mb-8 max-w-2xl mx-auto">
-              Join thousands of developers who trust AP-EYE for their monitoring needs.
+              Join thousands of developers who trust EY3-API for their monitoring needs.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Link href="/register" className="retro-button px-8 py-4 rounded-lg font-genz-display font-bold text-lg">
@@ -289,11 +287,11 @@ export default function Home() {
                 <Eye className="w-5 h-5 text-[#00ff88]" />
               </div>
               <span className="text-xl font-bold text-white font-nineties">
-                AP-EYE
+                EY3-API
               </span>
             </div>
             <div className="text-gray-400 font-genz-primary">
-              © 2025 AP-EYE. All rights reserved.
+              © 2025 EY3-API. All rights reserved.
             </div>
           </div>
         </div>

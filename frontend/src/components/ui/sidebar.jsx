@@ -196,7 +196,7 @@ function Sidebar({
     >
       <div
         className={cn(
-          "group/sidebar-wrapper has-data-[variant=inset]:bg-sidebar flex min-h-svh w-full",
+          "group/sidebar-wrapper has-data-[variant=inset]:bg-sidebar flex min-h-svh w-auto",
           collapsed ? "data-[state=collapsed]" : "data-[state=expanded]"
         )}
         data-slot="sidebar-wrapper"
@@ -209,12 +209,7 @@ function Sidebar({
         <div
           data-slot="sidebar-gap"
           className={cn(
-            "relative w-[var(--sidebar-width)] bg-transparent transition-[width] duration-200 ease-linear",
-            "group-data-[collapsible=offcanvas]:w-0",
-            "group-data-[side=right]:rotate-180",
-            variant === "floating" || variant === "inset"
-              ? "group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4)))]"
-              : "group-data-[collapsible=icon]:w-[var(--sidebar-width-icon)]"
+            "relative w-0 bg-transparent transition-[width] duration-200 ease-linear"
           )}
         />
         <div
@@ -222,7 +217,7 @@ function Sidebar({
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
           className={cn(
-            // Basic styles
+            // Fixed so it stays visible while scrolling
             "fixed inset-y-0 z-10 hidden h-svh transition-all duration-200 ease-in-out md:flex",
             // Default collapsed width
             collapsed ? "w-[var(--sidebar-width-icon)]" : "w-[var(--sidebar-width)]",
@@ -230,7 +225,7 @@ function Sidebar({
             side === "left"
               ? "left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]"
               : "right-0 group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]",
-            // Padding + border logic
+            // Borders/padding
             variant === "floating" || variant === "inset"
               ? "p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4))+2px)]"
               : "group-data-[collapsible=icon]:w-[var(--sidebar-width-icon)] group-data-[side=left]:border-r group-data-[side=right]:border-l",
