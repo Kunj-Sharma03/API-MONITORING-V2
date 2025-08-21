@@ -18,7 +18,7 @@ export default function useSocket() {
     if (!token) return;
 
     // Initialize Socket.io connection
-    const serverUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+  const serverUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/+$/, '');
     socketRef.current = io(serverUrl, {
       auth: {
         token: token

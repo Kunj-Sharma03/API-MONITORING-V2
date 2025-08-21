@@ -20,7 +20,7 @@ if (!process.env.GOOGLE_CLIENT_ID) {
   passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: process.env.GOOGLE_CALLBACK_URL,
+    callbackURL: process.env.GOOGLE_CALLBACK_URL || (process.env.NODE_ENV !== 'production' ? 'http://localhost:5000/api/auth/google/callback' : undefined),
   }, async (_accessToken, _refreshToken, profile, done) => {
     try {
       // Find or create user in DB
@@ -63,8 +63,12 @@ if (process.env.GOOGLE_CLIENT_ID) {
     const user = req.user;
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '7d' });
     // Redirect to frontend callback with token
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-    res.redirect(`${frontendUrl}/auth/callback?token=${token}`);
+    const frontendUrl = process.env.FRONTEND_URL || (process.env.NODE_ENV !== 'production' ? 'http://localhost:3000' : '');
+    if (!frontendUrl) {
+      // If FRONTEND_URL is not set in production, return token in JSON as a fallback
+      return res.json({ token });
+    }
+    res.redirect(`${frontendUrl}/auth/callback?token=${encodeURIComponent(token)}`);
   });
 } else {
   router.get('/auth/google', (_req, res) => res.status(503).json({ msg: 'Google OAuth not configured' }));

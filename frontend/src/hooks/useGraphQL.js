@@ -14,7 +14,8 @@ export function useGraphQL() {
     setError(null);
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/graphql`, {
+      const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/+$/, '');
+      const response = await fetch(`${baseUrl}/graphql`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -148,7 +149,8 @@ export function useMonitorsGraphQL() {
   // Get auth token (reuse your existing logic)
   const getToken = () => {
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('auth_token');
+  // Align with the rest of the app which stores JWT under 'token'
+  return localStorage.getItem('token');
     }
     return null;
   };

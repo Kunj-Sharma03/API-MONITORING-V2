@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/sheet";
 import { useState, useEffect } from "react";
 
-const API_URL = `${process.env.NEXT_PUBLIC_API_URL || 'https://api-monitoring-app-production.up.railway.app'}/api`;
+const API_URL = `${(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/+$/, '')}/api`;
 
 export default function AlertDetailsModal({ alert, onClose, onDelete = () => {}, token }) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);

@@ -94,7 +94,7 @@ export default function LoginPage() {
               type="button"
               className="bg-white/10 hover:bg-white/20 p-3 rounded-full border border-white/20 transition-all"
               onClick={() => {
-                const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api-monitoring-app-production.up.railway.app';
+                const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/+$/, '');
                 console.log('API URL:', apiUrl);
                 window.location.href = `${apiUrl}/api/auth/google`;
               }}

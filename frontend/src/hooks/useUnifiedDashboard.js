@@ -87,7 +87,7 @@ export default function useUnifiedDashboard(timeRange = '7d') {
     if (!token) return [];
     
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+  const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/+$/, '');
       const response = await fetch(`${apiUrl}/api/monitor/all`, {
         headers: { Authorization: `Bearer ${token}` }
       });

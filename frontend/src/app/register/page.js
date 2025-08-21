@@ -30,7 +30,7 @@ export default function RegisterPage() {
     }
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://api-monitoring-app-production.up.railway.app'}/api/register`, {
+  const res = await fetch(`${(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/+$/, '')}/api/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -128,7 +128,7 @@ export default function RegisterPage() {
               type="button"
               className="bg-white/10 hover:bg-white/20 p-3 rounded-full border border-white/20 transition-all"
               onClick={() => {
-                const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api-monitoring-app-production.up.railway.app';
+                const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/+$/, '');
                 console.log('API URL:', apiUrl);
                 window.location.href = `${apiUrl}/api/auth/google`;
               }}

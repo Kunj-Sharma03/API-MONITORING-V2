@@ -17,7 +17,7 @@ export default function useMonitorsSWR() {
   const shouldFetch = typeof window !== "undefined" && !!token;
 
   const { data = [], isLoading, mutate } = useSWR(
-    shouldFetch ? [`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/monitor/all`, token] : null,
+    shouldFetch ? [`${(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/+$/, '')}/api/monitor/all`, token] : null,
     fetcher,
     { 
       refreshInterval: 60000, // Reduced to 60 seconds since we have real-time updates
@@ -30,7 +30,7 @@ export default function useMonitorsSWR() {
   useEffect(() => {
     if (!token) return;
 
-    const serverUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+  const serverUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/+$/, '');
     const socket = io(serverUrl, {
       auth: { token },
       transports: ['websocket', 'polling']

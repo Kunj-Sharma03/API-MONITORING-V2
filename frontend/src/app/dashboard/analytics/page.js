@@ -21,7 +21,7 @@ import {
   ArrowDownRight
 } from 'lucide-react';
 
-const API_URL = `${process.env.NEXT_PUBLIC_API_URL || 'https://api-monitoring-app-production.up.railway.app'}/api`;
+const API_URL = `${(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/+$/, '')}/api`;
 
 export default function AnalyticsPage() {
   const { token } = useAuthToken();

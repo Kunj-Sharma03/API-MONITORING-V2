@@ -119,9 +119,9 @@ export default function GraphQLTest() {
       <div className="mt-4 text-sm text-[var(--color-text-secondary)]">
         <p><strong>Endpoints Active:</strong></p>
         <ul className="list-disc list-inside space-y-1">
-          <li>📡 REST API: <code>http://localhost:5000/api</code></li>
-          <li>🚀 GraphQL: <code>http://localhost:5000/graphql</code></li>
-          <li>🌐 Socket.io: <code>ws://localhost:5000</code></li>
+          <li>📡 REST API: <code>{`${(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/+$/, '')}/api`}</code></li>
+          <li>🚀 GraphQL: <code>{`${(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/+$/, '')}/graphql`}</code></li>
+          <li>🌐 Socket.io: <code>{`${(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/+$/, '')}`}</code></li>
         </ul>
       </div>
     </div>

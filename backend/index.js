@@ -51,10 +51,13 @@ validateEnv();
 const app = express();
 const server = createServer(app);
 
+// Determine allowed origin (prefer explicit FRONTEND_URL; allow localhost only in non-prod)
+const FRONTEND_ORIGIN = process.env.FRONTEND_URL || (process.env.NODE_ENV === 'production' ? undefined : 'http://localhost:3000');
+
 // Initialize Socket.io with CORS configuration
 const io = new Server(server, {
   cors: {
-    origin: process.env.FRONTEND_URL || "http://localhost:3000",
+    origin: FRONTEND_ORIGIN || true,
     methods: ["GET", "POST"],
     credentials: true
   }
@@ -64,7 +67,11 @@ const io = new Server(server, {
 // Only trust the first proxy (load balancer/reverse proxy)
 app.set('trust proxy', 1);
 
-app.use(cors());
+// API CORS configuration (default allow in dev; restrict to FRONTEND_URL in prod if set)
+app.use(cors({
+  origin: FRONTEND_ORIGIN || true,
+  credentials: true
+}));
 
 // Apply JSON middleware only to non-GraphQL routes
 app.use((req, res, next) => {
@@ -212,7 +219,7 @@ async function startServer() {
       app, 
       path: '/graphql',
       cors: {
-        origin: process.env.FRONTEND_URL || "http://localhost:3000",
+        origin: FRONTEND_ORIGIN || true,
         credentials: true
       }
     });
@@ -222,10 +229,11 @@ async function startServer() {
     
     // Start unified HTTP server (REST + GraphQL + Socket.io)
     server.listen(PORT, () => {
+      const baseUrl = process.env.BACKEND_PUBLIC_URL || `http://localhost:${PORT}`;
       console.log(`🚀 Server running on port ${PORT}`);
-      console.log(`📡 REST API available at http://localhost:${PORT}/api`);
-      console.log(`🚀 GraphQL available at http://localhost:${PORT}${apolloServer.graphqlPath}`);
-      console.log(`🌐 Socket.io server ready for real-time connections`);
+      console.log(`📡 REST API: ${baseUrl}/api`);
+      console.log(`🚀 GraphQL: ${baseUrl}${apolloServer.graphqlPath}`);
+      console.log(`🌐 Socket.io ready`);
     });
     
   } catch (error) {

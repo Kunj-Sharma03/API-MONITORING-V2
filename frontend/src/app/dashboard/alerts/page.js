@@ -5,7 +5,7 @@ import useAuthToken from "@/hooks/useAuthToken";
 import { MonitorIcon, Search, ChevronDown, ChevronUp, Filter } from "lucide-react";
 import AlertDetailsModal from "./AlertDetailsModal";
 
-const API_URL = `${process.env.NEXT_PUBLIC_API_URL || 'https://api-monitoring-app-production.up.railway.app'}/api`;
+const API_URL = `${(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/+$/, '')}/api`;
 
 export default function AlertsPage() {
   const { token, loading } = useAuthToken();
