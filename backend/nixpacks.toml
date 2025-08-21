@@ -1,9 +1,17 @@
 [phases.setup]
-nixpkgs = ["nodejs_20"]
+# Add build toolchain for native modules (e.g., bcrypt)
+nixpkgs = [
+	"nodejs_20",
+	"python3",
+	"gcc",
+	"gnumake",
+	"pkg-config",
+	"openssl"
+]
 
 [phases.install]
 cmds = [
-	"if [ -f package-lock.json ]; then npm ci --omit=dev; else npm install --omit=dev; fi"
+	"if [ -f package-lock.json ]; then npm ci --omit=dev || npm install --omit=dev; else npm install --omit=dev; fi"
 ]
 
 [phases.build]
@@ -14,3 +22,6 @@ cmd = "npm start"
 
 [variables]
 NODE_ENV = "production"
+PYTHON = "python3"
+NPM_CONFIG_LEGACY_PEER_DEPS = "true"
+NPM_CONFIG_BUILD_FROM_SOURCE = "true"
