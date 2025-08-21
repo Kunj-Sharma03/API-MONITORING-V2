@@ -1,0 +1,16 @@
+[phases.setup]
+nixpkgs = ["nodejs_20"]
+
+[phases.install]
+cmds = [
+  "cd backend && if [ -f package-lock.json ]; then npm ci --omit=dev; else npm install --omit=dev; fi"
+]
+
+[phases.build]
+cmds = []
+
+[phases.start]
+cmd = "cd backend && npm start"
+
+[variables]
+NODE_ENV = "production"
