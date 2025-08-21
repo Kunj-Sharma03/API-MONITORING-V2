@@ -130,7 +130,7 @@ jobs:
       # Enable advanced Docker features
       
     - name: Build backend Docker image
-      uses: docker/build-push-action@v5
+      uses: docker/build-push-action@v6
       with:
         context: ./backend
         file: ./backend/Dockerfile
@@ -139,7 +139,7 @@ jobs:
       # Build Docker image but don't push it
         
     - name: Build frontend Docker image
-      uses: docker/build-push-action@v5
+      uses: docker/build-push-action@v6
       with:
         context: ./frontend
         file: ./frontend/Dockerfile
