@@ -2,6 +2,7 @@
 
 [![Live Demo](https://img.shields.io/badge/🌐_Live_Demo-api--monitoring--app--5fob.vercel.app-blue?style=for-the-badge)](https://api-monitoring-app-5fob.vercel.app)
 [![Backend Status](https://img.shields.io/badge/⚡_Backend-Railway.app-purple?style=for-the-badge)](https://api-monitoring-app-production.up.railway.app)
+## ⭐ Tech Stack (The Good Stuff)
 [![Next.js](https://img.shields.io/badge/Next.js-15.3.4-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-blue?style=for-the-badge&logo=postgresql)](https://postgresql.org/)
 
@@ -31,6 +32,11 @@
 <br><i>Professional email notifications</i>
 </td>
 <td align="center">
+<img src="screenshots/mobile-dashboard.png" alt="Mobile Dashboard" width="300"/>
+<br><b>📱 Mobile Dashboard</b>
+<br><i>Responsive layout for on-the-go checks</i>
+</td>
+<td align="center">
 <img src="screenshots/alert-pdf.png" alt="PDF Report" width="300"/>
 <br><b>📄 PDF Reports</b>
 <br><i>Detailed incident reports</i>
@@ -38,9 +44,6 @@
 </tr>
 <tr>
 <td align="center">
-<img src="screenshots/mobile-dashboard.jpg" alt="Mobile View" width="300"/>
-<br><b>📱 Mobile Ready</b>
-<br><i>Responsive design for all devices</i>
 </td>
 <td align="center">
 <img src="screenshots/landing-page.png" alt="Landing Page" width="300"/>
@@ -76,9 +79,6 @@ AP-EYE is a sleek, modern API monitoring application that watches your endpoints
 - Email notifications with gorgeous PDF reports (yes, we made PDFs pretty)
 - 30-minute cooldown periods to prevent spam (your inbox will thank us)
 - Detailed error messages that actually help you debug
-- Status change tracking because context matters
-
-### 🎨 **UI That Doesn't Make Your Eyes Bleed**
 - Modern, responsive design that works on all devices
 - Dark theme by default because we're not monsters
 - Smooth animations powered by GSAP
@@ -101,26 +101,79 @@ AP-EYE is a sleek, modern API monitoring application that watches your endpoints
 - **SWR** - Data fetching that just works
 
 ### Backend
-- **Node.js + Express** - The classic combo that never gets old
-- **PostgreSQL** - A real database for real applications
-- **JWT** - Authentication tokens that don't give you headaches
-- **Nodemailer + Brevo** - Email that actually reaches inboxes
-- **PDFKit** - PDF generation that doesn't require selling your soul
-- **Node-cron** - Scheduled tasks that run when they're supposed to
+- **Node.js + Express** – REST API and app host
+- **Apollo GraphQL (Apollo Server)** – Unified, efficient data layer at `/graphql`
+- **Socket.IO** – Real‑time monitor updates and alerts
+- **PostgreSQL** – Durable relational data store
+- **JWT** – Auth tokens that don’t give you headaches
+- **Nodemailer + Brevo** – Email that actually reaches inboxes
+- **Railway** – Backend hosting that doesn’t break the bank
 
-### Infrastructure
-- **Vercel** - Frontend hosting that deploys faster than you can say "build failed"
-- **Railway** - Backend hosting that doesn't break the bank
-- **PostgreSQL on Railway** - Database hosting that doesn't randomly disappear
+## 🧠 GraphQL API
 
+- Endpoint: `POST /graphql`
+- Auth: `Authorization: Bearer <JWT>`
+- Playground: Enabled in development, disabled in production.
+
+Example query (used by the dashboard):
+
+```graphql
+query GetDashboardData($timeRange: String!) {
+	me { id email }
+	monitors {
+		id url status last_response_time last_status_code is_active interval_minutes
+		stats { uptime_percentage avg_response_time last_24h_uptime }
+	}
+	analytics(range: $timeRange) {
+		overview { total_monitors active_monitors overall_uptime avg_response_time }
+		uptimeHistory(range: $timeRange) { date uptime_percentage }
+		responseTimeHistory(range: $timeRange) { date avg_response_time }
+		alertsHistory(range: $timeRange) { date alert_count }
+	}
+}
+```
+
+Example mutation:
+
+```graphql
+mutation CreateMonitor($input: CreateMonitorInput!) {
+	createMonitor(input: $input) { id url is_active interval_minutes }
+}
+```
+
+Variables example:
+
+```json
+{ "timeRange": "7d", "input": { "url": "https://api.example.com/health", "interval_minutes": 5, "alert_threshold": 3 } }
+```
+
+Tip: The frontend uses `src/hooks/useDashboardGraphQL.js` and `src/hooks/useGraphQL.js` to fetch this in one efficient query.
+
+## ⚡ Real‑time with Socket.IO
+
+- Client connects to `${NEXT_PUBLIC_API_URL}` and joins a user room via `join-user-room`.
+- Events emitted by the server:
+	- `monitor-check` – Broadcast for each check result
+	- `user-monitor-check` – User‑specific check result
+	- `monitor-alert` – Broadcast when a monitor changes status
+	- `user-alert` – User‑specific alert
+
+Minimal client example:
+
+```js
+import { io } from 'socket.io-client';
+const socket = io(process.env.NEXT_PUBLIC_API_URL);
+socket.on('connect', () => socket.emit('join-user-room', userId));
+socket.on('monitor-check', (data) => console.log('check', data));
+socket.on('monitor-alert', (data) => console.log('alert', data));
+```
+
+See `frontend/src/hooks/useSocket.js` and `frontend/src/components/RealTimeDashboard.jsx` for a full integration.
 ## 🚀 Quick Start (For the Impatient)
 
 ### Prerequisites
 - Node.js 18+ (because living in the past is overrated)
 - PostgreSQL database (local or hosted, we don't judge)
-- Email service credentials (Brevo/SendGrid/Gmail - pick your poison)
-- A functioning keyboard and at least one working braincell
-
 ### 1. Clone & Install
 ```bash
 git clone https://github.com/Kunj-Sharma03/api-monitoring-app.git
@@ -155,6 +208,7 @@ DATABASE_URL=postgresql://username:password@host:port/database
 
 # Authentication
 JWT_SECRET=your-super-secret-jwt-key-that-is-at-least-32-characters-long
+FRONTEND_URL=https://your-frontend-domain.vercel.app
 
 # Email Configuration (Brevo)
 EMAIL_FROM=your-verified-email@domain.com
@@ -170,6 +224,13 @@ CORS_ORIGIN=https://your-frontend-domain.vercel.app
 ```env
 NEXT_PUBLIC_API_URL=https://your-backend.railway.app
 ```
+
+## 📚 API Docs (Swagger)
+
+- Swagger UI: `/api-docs`
+- Swagger JSON: `/swagger.json`
+
+Browse endpoints and try REST calls directly in the UI.
 
 ### 4. Deploy & Pray
 ```bash
@@ -198,6 +259,10 @@ api-monitoring-app/
 │   │   └── analytics.js    # Data aggregation wizardry
 │   ├── services/           # Background workers
 │   │   └── monitorWorker.js # The hero that checks your APIs
+│   ├── graphql/            # GraphQL API
+│   │   ├── typeDefs.js     # Schema
+│   │   ├── resolvers.js    # Resolvers
+│   │   └── context.js      # Auth & DB context
 │   ├── utils/              # Utility functions
 │   │   ├── sendEmail.js    # Email sending that works
 │   │   ├── generateAlertPDF.js # PDF generation artistry
@@ -250,6 +315,11 @@ api-monitoring-app/
 2. Set environment variables
 3. Deploy with automatic builds
 4. Configure custom domain (optional but recommended)
+
+### CI/CD (GitHub Actions)
+- Lint, security audit, and build for both apps (see `.github/workflows/ci.yml`).
+- Optional advanced pipeline with Docker build/push and staged deploys (see `.github/workflows/ci-cd.yml`).
+- The pipeline runs on pushes/PRs to main branches and performs a healthcheck against `/health`.
 
 ### Frontend (Vercel)
 1. Import project from GitHub
