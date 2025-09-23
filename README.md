@@ -1,6 +1,6 @@
 # 🚀 AP-EYE: The API Monitor That Actually Cares
 
-[![Live Demo](https://img.shields.io/badge/🌐_Live_Demo-api--monitoring--app--5fob.vercel.app-blue?style=for-the-badge)](https://api-monitoring-app-5fob.vercel.app)
+[![Live Demo](https://img.shields.io/badge/🌐_Live_Demo-api--monitoring--app--5fob.vercel.app-blue?style=for-the-badge)](https://api-monitoring-v2.vercel.app/)
 [![Backend Status](https://img.shields.io/badge/⚡_Backend-Railway.app-purple?style=for-the-badge)](https://api-monitoring-app-production.up.railway.app)
 ## ⭐ Tech Stack (The Good Stuff)
 [![Next.js](https://img.shields.io/badge/Next.js-15.3.4-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
